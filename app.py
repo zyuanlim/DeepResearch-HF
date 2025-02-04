@@ -40,6 +40,7 @@ from smolagents import (
     Model,
     ToolCallingAgent,
 )
+from smolagents.agent_types import AgentText, AgentImage, AgentAudio
 from smolagents.gradio_ui import pull_messages_from_step, handle_agent_output_types
 
 
@@ -130,34 +131,14 @@ WEB_TOOLS = [
     ArchiveSearchTool(browser),
     TextInspectorTool(model, text_limit),
 ]
-text_webbrowser_agent = ToolCallingAgent(
-    model=model,
-    tools=WEB_TOOLS,
-    max_steps=20,
-    verbosity_level=2,
-    planning_interval=4,
-    name="search_agent",
-    description="""A team member that will search the internet to answer your question.
-Ask him for all your questions that require browsing the web.
-Provide him as much context as possible, in particular if you need to search on a specific timeframe!
-And don't hesitate to provide him with a complex search task, like finding a difference between two webpages.
-Your request must be a real sentence, not a google search! Like "Find me this information (...)" rather than a few keywords.
-""",
-    provide_run_summary=True,
-    managed_agent_prompt=MANAGED_AGENT_PROMPT
-    + """You can navigate to .txt online files.
-If a non-html page is in another format, especially .pdf or a Youtube video, use tool 'inspect_file_as_text' to inspect it.
-Additionally, if after some searching you find out that you need more information to answer the question, you can use `final_answer` with your request for clarification as argument to request for more information.""",
-)
 
 agent = CodeAgent(
     model=model,
-    tools=[visualizer, ti_tool],
-    max_steps=12,
+    tools=[visualizer] + WEB_TOOLS,
+    max_steps=5,
     verbosity_level=2,
     additional_authorized_imports=AUTHORIZED_IMPORTS,
     planning_interval=4,
-    managed_agents=[text_webbrowser_agent],
 )
 
 document_inspection_tool = TextInspectorTool(model, 20000)
@@ -291,11 +272,18 @@ class GradioUI:
         )
 
     def launch(self, **kwargs):
-        with gr.Blocks(fill_height=True) as demo:
+        with gr.Blocks(theme="ocean", fill_height=True) as demo:
+            gr.Markdown("""# open Deep Research - free the AI agents!
+            
+OpenAI just published [Deep Research](https://openai.com/index/introducing-deep-research/), a very nice assistant that can perform deep searches in file or the web to answer user requests.
+
+However, their agent has a huge downside: it's not open. So we've started a 24-hour rush to replicate and open-source it. Our resulting [open-Deep-Research agent](https://github.com/huggingface/smolagents/tree/main/examples/open_deep_research) took the #1 rank of any open submission on the GAIA leaderboard! ✨
+
+You can try a simplified version below. 👇""")
             stored_messages = gr.State([])
             file_uploads_log = gr.State([])
             chatbot = gr.Chatbot(
-                label="Agent",
+                label="open-Deep-Research",
                 type="messages",
                 avatar_images=(
                     None,
@@ -313,7 +301,7 @@ class GradioUI:
                     [upload_file, file_uploads_log],
                     [upload_status, file_uploads_log],
                 )
-            text_input = gr.Textbox(lines=1, label="Chat Message")
+            text_input = gr.Textbox(lines=1, label="Your request")
             text_input.submit(
                 self.log_user_message,
                 [text_input, file_uploads_log],
