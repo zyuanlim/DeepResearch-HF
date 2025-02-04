@@ -5,12 +5,14 @@ import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 import datasets
 import pandas as pd
 from dotenv import load_dotenv
 from huggingface_hub import login
+import gradio as gr
+
 from scripts.reformulator import prepare_response
 from scripts.run_agents import (
     get_single_file_description,
@@ -38,6 +40,7 @@ from smolagents import (
     Model,
     ToolCallingAgent,
 )
+from smolagents.gradio_ui import pull_messages_from_step, handle_agent_output_types
 
 
 AUTHORIZED_IMPORTS = [
@@ -106,10 +109,10 @@ BROWSER_CONFIG = {
 
 os.makedirs(f"./{BROWSER_CONFIG['downloads_folder']}", exist_ok=True)
 
-
-model = HfApiModel(
-    "Qwen/Qwen2.5-32B-Instruct",
+model = LiteLLMModel(
+    "gpt-4o",
     custom_role_conversions=custom_role_conversions,
+    api_key=os.getenv("OPENAI_API_KEY")
 )
 
 text_limit = 20000
@@ -176,17 +179,46 @@ document_inspection_tool = TextInspectorTool(model, 20000)
 
 # final_result = agent.run(augmented_question)
 
-import gradio as gr
-from smolagents.gradio_ui import stream_to_gradio
+
+def stream_to_gradio(
+    agent,
+    task: str,
+    reset_agent_memory: bool = False,
+    additional_args: Optional[dict] = None,
+):
+    """Runs an agent with the given task and streams the messages from the agent as gradio ChatMessages."""
+    for step_log in agent.run(task, stream=True, reset=reset_agent_memory, additional_args=additional_args):
+        for message in pull_messages_from_step(
+            step_log,
+        ):
+            yield message
+
+    final_answer = step_log  # Last log is the run's final_answer
+    final_answer = handle_agent_output_types(final_answer)
+
+    if isinstance(final_answer, AgentText):
+        yield gr.ChatMessage(
+            role="assistant",
+            content=f"**Final answer:**\n{final_answer.to_string()}\n",
+        )
+    elif isinstance(final_answer, AgentImage):
+        yield gr.ChatMessage(
+            role="assistant",
+            content={"path": final_answer.to_string(), "mime_type": "image/png"},
+        )
+    elif isinstance(final_answer, AgentAudio):
+        yield gr.ChatMessage(
+            role="assistant",
+            content={"path": final_answer.to_string(), "mime_type": "audio/wav"},
+        )
+    else:
+        yield gr.ChatMessage(role="assistant", content=f"**Final answer:** {str(final_answer)}")
+
 
 class GradioUI:
     """A one-line interface to launch your agent in Gradio"""
 
-    def __init__(self, agent: MultiStepAgent, file_upload_folder: str | None = None):
-        if not _is_package_available("gradio"):
-            raise ModuleNotFoundError(
-                "Please install 'gradio' extra to use the GradioUI: `pip install 'smolagents[gradio]'`"
-            )
+    def __init__(self, agent, file_upload_folder: str | None = None):
         self.agent = agent
         self.file_upload_folder = file_upload_folder
         if self.file_upload_folder is not None:
@@ -194,8 +226,6 @@ class GradioUI:
                 os.mkdir(file_upload_folder)
 
     def interact_with_agent(self, prompt, messages):
-        import gradio as gr
-
         messages.append(gr.ChatMessage(role="user", content=prompt))
         yield messages
         for msg in stream_to_gradio(self.agent, task=prompt, reset_agent_memory=False):
@@ -216,8 +246,6 @@ class GradioUI:
         """
         Handle file uploads, default allowed types are .pdf, .docx, and .txt
         """
-        import gradio as gr
-
         if file is None:
             return gr.Textbox("No file uploaded", visible=True), file_uploads_log
 
@@ -263,8 +291,6 @@ class GradioUI:
         )
 
     def launch(self, **kwargs):
-        import gradio as gr
-
         with gr.Blocks(fill_height=True) as demo:
             stored_messages = gr.State([])
             file_uploads_log = gr.State([])
