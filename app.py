@@ -275,7 +275,7 @@ class GradioUI:
         with gr.Blocks(theme="ocean", fill_height=True) as demo:
             gr.Markdown("""# open Deep Research - free the AI agents!
             
-OpenAI just published [Deep Research](https://openai.com/index/introducing-deep-research/), a very nice assistant that can perform deep searches in file or the web to answer user requests.
+OpenAI just published [Deep Research](https://openai.com/index/introducing-deep-research/), a very nice assistant that can perform deep searches on the web to answer user questions.
 
 However, their agent has a huge downside: it's not open. So we've started a 24-hour rush to replicate and open-source it. Our resulting [open-Deep-Research agent](https://github.com/huggingface/smolagents/tree/main/examples/open_deep_research) took the #1 rank of any open submission on the GAIA leaderboard! ✨
 
