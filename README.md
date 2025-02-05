@@ -11,6 +11,8 @@ license: apache-2.0
 short_description: OpenAI's Deep Research, but open
 ---
 
+> NOTE: Open Deep Research provided from [SmolAgents](https://github.com/huggingface/smolagents)!
+
 # Running Locally:
 
 1. Clone the repository:
