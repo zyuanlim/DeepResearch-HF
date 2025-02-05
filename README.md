@@ -11,4 +11,35 @@ license: apache-2.0
 short_description: OpenAI's Deep Research, but open
 ---
 
-Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference
+# Running Locally:
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/yourusername/open-deep-research.git
+cd open-deep-research
+```
+
+2. Install dependencies:
+
+```bash
+uv sync
+```
+
+3. Set up environment variables:
+
+```bash
+export OPENAI_API_KEY="your_openai_key"
+export SERPAPI_API_KEY="your_serpapi_key"
+export HF_TOKEN="your_huggingface_token"
+```
+
+4. Run the application:
+
+```bash
+uv run app.py
+```
+
+
+
+

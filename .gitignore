@@ -1,0 +1,4 @@
+.venv
+.gradio
+downloads_folder
+uv.lock
