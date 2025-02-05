@@ -16,7 +16,7 @@ short_description: OpenAI's Deep Research, but open
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/open-deep-research.git
+git clone https://github.com/AI-Maker-Space/DeepResearch-HF.git
 cd open-deep-research
 ```
 
