@@ -2,3 +2,5 @@
 .gradio
 downloads_folder
 uv.lock
+.env
+__pycache__

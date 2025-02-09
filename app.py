@@ -33,7 +33,6 @@ from scripts.visual_qa import visualizer
 from tqdm import tqdm
 
 from smolagents import (
-    MANAGED_AGENT_PROMPT,
     CodeAgent,
     HfApiModel,
     LiteLLMModel,

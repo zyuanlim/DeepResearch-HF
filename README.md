@@ -41,7 +41,3 @@ export HF_TOKEN="your_huggingface_token"
 ```bash
 uv run app.py
 ```
-
-
-
-

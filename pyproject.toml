@@ -24,7 +24,6 @@ dependencies = [
     "python-dotenv>=1.0.1",
     "python-pptx>=1.0.2",
     "requests>=2.32.3",
-    "serpapi>=0.1.5",
     "tqdm>=4.66.4",
     "torch>=2.2.2",
     "torchvision>=0.17.2",
@@ -41,11 +40,8 @@ dependencies = [
     "xlrd>=2.0.1",
     "speechrecognition>=3.14.1",
     "litellm>=1.60.2",
-    "smolagents",
+    "smolagents>=1.8.0",
     "gradio>=5.15.0",
     "pdfminer-six>=20240706",
     "jupyter>=1.1.1",
 ]
-
-[tool.uv.sources]
-smolagents = { git = "https://github.com/huggingface/smolagents.git", rev = "main" }
